@@ -5,9 +5,9 @@ import json
 import time
 import re
 
-file_1 = open('config.json').read()
+file_1 = open('./config.json').read()
 config = json.loads(file_1)
-file_2 = open('lang.json', encoding='utf-8').read()
+file_2 = open('./lang.json', encoding='utf-8').read()
 lang = json.loads(file_2)
 
 API_ID = config['API_ID']
@@ -59,23 +59,23 @@ def remove_channel_id(channel_id):
     file.write(j)
     file.close()
 
-@client.on(events.NewMessage(pattern='^\.(start|alive)', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.(start|alive)', incoming=False))
 async def start(event):
     await event.edit(lang['START_MSG'])
 
-@client.on(events.NewMessage(pattern='^\.help', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.help', incoming=False))
 async def help_msg(event):
     await event.edit(lang['HELP_MSG'])
 
-@client.on(events.NewMessage(pattern='^\.features', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.features', incoming=False))
 async def all_features(event):
     await event.edit(lang['FEATURES'])
 
-@client.on(events.NewMessage(pattern='^\.commands', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.commands', incoming=False))
 async def total_commands(event):
     await event.edit(lang['TOTAL_COMMANDS'])
 
-@client.on(events.NewMessage(pattern='^\.add', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.add', incoming=False))
 async def add_channel_id_for_auto_comment(event):
     if event.is_reply:
         reply_msg = await event.get_reply_message()
@@ -93,7 +93,7 @@ async def add_channel_id_for_auto_comment(event):
             CHANNEL_ID.append(chat.id)
             await event.edit(lang['ADDED_CHANNEL_ID'])
     else:
-        regex = re.search('^\.add ?(.+)?', event.raw_text)
+        regex = re.search('^\\.add ?(.+)?', event.raw_text)
         if regex:
             try:
                 try:
@@ -112,7 +112,7 @@ async def add_channel_id_for_auto_comment(event):
                 CHANNEL_ID.append(chat.id)
                 await event.edit(lang['ADDED_CHANNEL_ID'])
 
-@client.on(events.NewMessage(pattern='^\.remove', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.remove', incoming=False))
 async def remove_channel_id_for_auto_comment(event):
     if event.is_reply:
         reply_msg = await event.get_reply_message()
@@ -130,7 +130,7 @@ async def remove_channel_id_for_auto_comment(event):
             CHANNEL_ID.remove(chat.id)
             await event.edit(lang['REMOVED_CHANNEL_ID'])
     else:
-        regex = re.search('^\.remove ?(.+)?', event.raw_text)
+        regex = re.search('^\\.remove ?(.+)?', event.raw_text)
         if regex:
             try:
                 try:
@@ -149,7 +149,7 @@ async def remove_channel_id_for_auto_comment(event):
                 CHANNEL_ID.remove(chat.id)
                 await event.edit(lang['REMOVED_CHANNEL_ID'])
 
-@client.on(events.NewMessage(pattern='^\.id', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.id', incoming=False))
 async def getID(event):
     if event.is_reply:
         reply_msg = await event.get_reply_message()
@@ -158,7 +158,7 @@ async def getID(event):
         except:
             await event.edit(lang['REPLY_TO_CHANNEL_MSG_1'])
     else:
-        regex = re.search('^\.id ?(.+)?', event.raw_text)
+        regex = re.search('^\\.id ?(.+)?', event.raw_text)
         if regex:
             if regex.group(1) is None:
                 await event.edit(lang['ID_USAGE'])
@@ -173,13 +173,13 @@ async def getID(event):
                 return
             await event.edit(f'<b>ID:</b> <code>-100{chat.id}</code>')
 
-@client.on(events.NewMessage(pattern='^\.setlang', incoming=False))
+@client.on(events.NewMessage(pattern='^\\.setlang', incoming=False))
 async def set_language(event):
-    regex = re.search('^\.setlang ?(.+)?', event, re.DOTALL)
+    regex = re.search('^\\.setlang ?(.+)?', event.raw_text, re.DOTALL)
     if regex:
         if regex.group(1):
             lang = regex.group(1)
-            if not lang in CONFIG_FUNC['AVAILABLE_LANGUAGES']:
+            if not lang in CONFIG_FUNC()['AVAILABLE_LANGUAGES']:
                 await event.edit(lang['LANG_NOT_AVAILABLE'])
                 return
             else:
@@ -193,14 +193,14 @@ async def _auto_comment(event):
     if event.chat_id not in CHANNEL_ID:
         return
     print(lang['NEW_POST'].format(event.peer_id.channel_id))
-    try: # for the post those doesn't have comments section or deleted and such.
+    try:  # for posts that don't have comments or are deleted, etc.
         await client.send_message(event.chat_id, random.choice(COMMENT_TEXT), comment_to=event.id)
         print(lang['COMMENTED'].format(event.peer_id.channel_id))
     except errors.FloodWaitError as e:
         print(lang['FLOOD_WAIT_ERROR'].format(e.seconds))
         time.sleep(e.seconds)
     except Exception as e:
-        print(lang['ERROR_WHILE_POSTING'] + '\n' + e)
+        print(lang['ERROR_WHILE_POSTING'] + '\n' + str(e))
 
-print(lang['STARTED_USERBOT'])
+print(lang['START_MSG'])
 client.run_until_disconnected()
