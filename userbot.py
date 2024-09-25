@@ -61,7 +61,16 @@ async def _auto_comment(event):
 
     try:
         time.sleep(3)
-        await client.send_message(event.chat_id, random.choice(COMMENT_TEXT), comment_to=post_id)
+        message = (
+            "❤️‍🔥 <b>آهای ایرانی با غیرتی که پیاممو میخونی</b>❗️\n\n"
+            "<b><i>امیدوارم</i></b>\n\n"
+            "<b><i>امسال</i></b>\n\n"
+            "<u>خودت و خانوادت در </u>"
+            "<b>سلامتی و عشق</b> "
+            "<u>باشید!</u>"
+        )
+
+        await client.send_message(event.chat_id, message, comment_to=post_id,parse_mode='html')
         print(f"کامنت ارسال شد به پست {post_id} در کانال {channel_username}")
         delay = random.uniform(10, 20)
         time.sleep(delay)
