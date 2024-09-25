@@ -36,20 +36,31 @@ def CONFIG_FUNC():
 global CHANNEL_ID
 CHANNEL_ID = CONFIG_FUNC()['CHANNEL_ID']
 
+# دیکشنری برای ذخیره آخرین آی‌دی پست هر کانال
+last_post_ids = {}
+
 
 @client.on(events.NewMessage)
 async def _auto_comment(event):
     if event.chat_id not in CHANNEL_ID:
         return
 
-    # گرفتن آی‌دی پست و نام کاربری کانال (در صورت وجود)
     post_id = event.id
     channel_username = event.chat.username if event.chat.username else "بدون نام کاربری"
+
+    # بررسی آی‌دی آخرین پست در این کانال
+    if event.chat_id in last_post_ids:
+        if post_id <= last_post_ids[event.chat_id]:
+            # اگر پست قدیمی یا تکراری است، هیچ کاری انجام نده
+            return
+
+    # ذخیره آی‌دی پست به عنوان آخرین پست پردازش شده برای این کانال
+    last_post_ids[event.chat_id] = post_id
 
     print(f"پست جدید در کانال: {channel_username} (آی‌دی کانال: {event.chat_id}), آی‌دی پست: {post_id}")
 
     try:
-        # ارسال کامنت تصادفی از لیست COMMENT_TEXT
+        time.sleep(3)
         await client.send_message(event.chat_id, random.choice(COMMENT_TEXT), comment_to=post_id)
         print(f"کامنت ارسال شد به پست {post_id} در کانال {channel_username}")
         delay = random.uniform(10, 20)
@@ -66,8 +77,8 @@ async def monitor_channels():
     while True:
         for channel_id in CHANNEL_ID:
             try:
-                async for message in client.iter_messages(channel_id):
-                    # چاپ متن پیام و نام کاربری یا آی‌دی کانال
+                # مانیتور کردن فقط آخرین پیام‌ها از هر کانال
+                async for message in client.iter_messages(channel_id, limit=1):
                     print(
                         f"پیام جدید در کانال {message.chat.username if message.chat.username else message.chat_id}: {message.text}")
                     await _auto_comment(message)
